@@ -1,18 +1,20 @@
 //FOR USER
 1. user sign in / sign up            (Done)
 2. show store products               (Done)
-3. buy a product
-4. add to cart a product
-5. use a bank card to purchase
-6. use a coupoun code
-7. log out 
+3. search for a product 
+4. buy a product
+5. add to cart a product
+6. use a bank card to purchase
+7. use a coupoun code
+8. log out                           (Done)
 
 //FOR ADMIN
 1. admin sign in / sign up           (Done)
 2. (add,remove) a user           
 3. (add,modify,delete) a product     (66%)         
-4. benifits control panel
-5. create coupouns
+4. search for a user
+5. benifits control panel
+6. create coupouns
 
 //UPGRADE PROGRAM
 1. Finish your file + linked list version

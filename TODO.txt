@@ -1,0 +1,20 @@
+//FOR USER
+1. user sign in / sign up            (Done)
+2. show store products               (Done)
+3. buy a product
+4. add to cart a product
+5. use a bank card to purchase
+6. use a coupoun code
+7. log out 
+
+//FOR ADMIN
+1. admin sign in / sign up           (Done)
+2. (add,remove) a user           
+3. (add,modify,delete) a product     (66%)         
+4. benifits control panel
+5. create coupouns
+
+//UPGRADE PROGRAM
+1. Finish your file + linked list version
+2. Make file + vector version
+3️. Upgrade to SQLite

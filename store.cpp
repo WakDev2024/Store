@@ -382,6 +382,63 @@ void view_elements(X *head, bool is_admin = 0) {
         head = head->next;
     }
 }
+template <typename X>
+void view_element(X *head, bool is_admin = 0) {
+    
+        if constexpr (std::is_same_v<X,product>) {
+            std::cout << std::endl << "<> Product " << std::endl;
+            if(is_admin) std::cout << "\tID : " << head->id << std::endl;
+            std::cout << "\tTitle : " << head->title << std::endl;
+            std::cout << "\tDescription : " << head->desc << std::endl;
+            std::cout << "\tCategory : " << head->cat << std::endl;
+            std::cout << "\tPrice : " << head->price << std::endl;
+            std::cout << "\tStock : " << head->stock << std::endl;
+        }
+        else {
+            std::cout << std::endl << "<> Account " << std::endl;
+            std::cout << "\tID : " << head->id << std::endl;
+            std::cout << "\tType : " << head->type << std::endl;
+            std::cout << "\tusername : " << head->username << std::endl;
+            std::cout << "\temail : " << head->email << std::endl;
+            std::cout << "\tpassword : " << head->password << std::endl;
+            
+        }  
+}
+
+template <typename X>
+void search_element(X* head) {
+    int elems_found = 0;
+    std::string search_kW;
+    if constexpr (std::is_same_v <X,product>)
+        std::cout << "Enter a keyword of product ( title, description, category ) : " << std::endl << ">> "; 
+    else 
+        std::cout << "Enter a keyword of user ( username, email ) : " << std::endl << ">> "; 
+
+    std::cin >> search_kW;
+
+    while(head) {
+        if constexpr (std::is_same_v <X,product> ) {
+            if(head->title == search_kW || head->desc == search_kW || head->cat == search_kW) {
+                view_element(head);
+                elems_found++;
+            }     
+        }
+        else {
+            if(head->username == search_kW || head->email == search_kW) {
+                view_element(head,1);
+                elems_found++;
+            }     
+        }
+        head = head->next;   
+    }
+    if(elems_found <=1 ) 
+        std::cout << elems_found << " element found." << std::endl;
+    else
+        std::cout << elems_found << " elements found." << std::endl;
+
+}
+
+
 
 template <typename Y>
 void save_changes(Y** elem_head,std::string file_name) {
@@ -420,13 +477,14 @@ int main() {
     int is_logged = 0;
     bool is_admin = 0;
     std::string storeName = "Wakrimi Fashion";
-    uploadElements(&users_head,"loginReg.txt");
-    uploadElements(&products_head,"products.txt");
+    uploadElements(&users_head,"DB/loginReg.txt");
+    uploadElements(&products_head,"DB/products.txt");
     std::cout << std::endl << "Welcome to " + storeName + " store \n";
     while(1) {
         std::cout << std::endl << "Choose an operation : " << std::endl;
         if(is_logged) {        
             std::cout << "\t<> View Products (V)" << std::endl;
+            std::cout << "\t<> Search Products (F)" << std::endl;
             if(is_admin) {
                 std::cout << "\t<> Add Product (A)" << std::endl;
                 std::cout << "\t<> Modify Product (M)" << std::endl;
@@ -434,6 +492,7 @@ int main() {
                 std::cout << "\t<> View Accounts (W)" << std::endl;
                 std::cout << "\t<> Add Account (P)" << std::endl;
                 std::cout << "\t<> Edit Account (E)" << std::endl;
+                std::cout << "\t<> Search for Account (R)" << std::endl;
                 std::cout << "\t<> Delete Account (X)" << std::endl;
             }
             std::cout << "\t<> Log Out (O)" << std::endl;
@@ -463,31 +522,32 @@ int main() {
                     if(!is_logged) {
                         is_logged = login(users_head);
                         if(is_logged == 1) is_admin = 1;
+                        else is_admin = 0;
                     }
                     else std::cout << "Access denied" << std::endl; 
                     break;
             case 'A' :
-                    if(is_admin) add_element(&products_head);
+                    if(is_logged && is_admin) add_element(&products_head);
                     else std::cout << "Access denied" << std::endl; 
                     break;
             case 'P' :
-                    if(is_admin) add_element(&users_head);
+                    if(is_logged && is_admin) add_element(&users_head);
                     else std::cout << "Access denied" << std::endl; 
                     break;
             case 'M' : 
-                    if(is_admin) modify_element(&products_head);
+                    if(is_logged && is_admin) modify_element(&products_head);
                     else std::cout << "Access denied" << std::endl;
                     break;
             case 'E' : 
-                    if(is_admin) modify_element(&users_head);
+                    if(is_logged && is_admin) modify_element(&users_head);
                     else std::cout << "Access denied" << std::endl;
                     break;
             case 'D' :
-                    if(is_admin) delete_element(&products_head);
+                    if(is_logged && is_admin) delete_element(&products_head);
                     else std::cout << "Access denied" << std::endl; 
                     break;
             case 'X' :
-                    if(is_admin) delete_element(&users_head);
+                    if(is_logged && is_admin) delete_element(&users_head);
                     else std::cout << "Access denied" << std::endl; 
                     break;
             case 'V' : 
@@ -495,15 +555,21 @@ int main() {
                     else std::cout << "Access denied" << std::endl; 
                     break;
             case 'W' : 
-                    if(is_admin) view_elements(users_head);
+                    if(is_logged && is_admin) view_elements(users_head);
                     else std::cout << "Access denied" << std::endl; 
+                    break;
+            case 'F' : 
+                    if(is_logged) search_element(products_head);
+                    break;
+            case 'R' : 
+                    if(is_logged && is_admin) search_element(users_head);
                     break;
 
             case 'Q' : 
                     std::cout << std::endl << "<> Quit" << std::endl << std::endl;
-                    save_changes(&products_head,"products.txt");
-                    save_changes(&users_head,"loginReg.txt");
-                    exit(1);
+                    save_changes(&products_head,"DB/products.txt");
+                    save_changes(&users_head,"DB/loginReg.txt");
+                    exit(0);
                     break;
             default : 
                     std::cout << "Please, ";

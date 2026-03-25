@@ -1,2 +1,0 @@
-0|A|admin|admin@admin|admin
-1|C|user|user@user|user

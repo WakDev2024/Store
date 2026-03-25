@@ -438,8 +438,6 @@ void search_element(X* head) {
 
 }
 
-
-
 template <typename Y>
 void save_changes(Y** elem_head,std::string file_name) {
     std::fstream elem_file;

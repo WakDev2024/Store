@@ -1,7 +1,8 @@
 #include <iostream>
 #include <string>
-#include <fstream>
-#include <type_traits>
+#include <fstream> // for reading/writing files
+#include <type_traits> //for using templates
+#include <iomanip> // for input/output manipulation in terminal
 
 struct user {
     int id;
@@ -21,6 +22,20 @@ struct product {
     int stock;
     struct product* next;
 };
+
+struct card_info {
+    std::string first_name;
+    std::string last_name;
+    std::string RIB;  //16 nbr
+    std::string expir_date; // MM/YY
+    int cvv;
+    double balance;
+};
+
+void print_option(const char* option, const char* option_symbol, const char* color = "\033[36m") {
+    std::cout << color ;
+    std::cout << std::left << std::setw(25) << std::setfill('.')  << option << option_symbol << std::endl << "\033[0m" ;
+}
 
 template <typename T>
 void generate_elem(T* elem, const char* elem_line) {
@@ -466,41 +481,166 @@ void save_changes(Y** elem_head,std::string file_name) {
     }
 }
 
+card_info insert_card_info() {
+    card_info card;
+    std::cout << "<> Card Info "<< std::endl;
+    std::cout << "Enter First Name : " << std::endl << ">> ";
+    std::cin >> card.first_name;
+    std::cout << "Enter Last Name : " << std::endl << ">> ";
+    std::cin >> card.last_name;
+    std::cout << "Enter RIB : " << std::endl << ">> ";
+    std::cin >> card.RIB;
+    return card;
+}
+
+bool is_card_valid(card_info& user_card) { // the card that is provided by user
+    std::ifstream file("DB/creditCard.txt");
+    std::string line;
+    
+    if (!file.is_open()) {
+        std::cout << "Error while opening creditCard.txt for reading !!!" << std::endl;
+        return false;
+    }
+    
+    while(std::getline(file,line)) {
+
+        const char* c_line = line.c_str();
+        const char* ptr = c_line;
+        card_info card_line; // the card info that exists in file
+        std::string cvv, balance;
+        int sep_count = 0;   
+
+        while(*ptr != '\0') {
+            if(*ptr == '|') {
+                ptr++;
+                sep_count++;
+                continue;
+            }
+            switch(sep_count) {
+                case 0 :    card_line.first_name += *ptr; break;    
+                case 1 :    card_line.last_name += *ptr; break;    
+                case 2 :    card_line.RIB += *ptr; break;    
+                case 3 :    card_line.expir_date += *ptr; break;    
+                case 4 :    cvv += *ptr; break;    
+                case 5 :    balance += *ptr; break;    
+            }
+            ptr++;
+        }
+    
+        if( user_card.first_name == card_line.first_name &&
+            user_card.last_name == card_line.last_name &&
+            user_card.RIB == card_line.RIB ) 
+        {
+            user_card.cvv = std::stoi(cvv); // insert additional info into user's card
+            user_card.balance = std::stof(balance);
+
+            return true; //card is valid
+        }
+    }
+    file.close();
+    return false;
+
+}
+
+void buy_product(product* prod_head, card_info& card) {
+    std::string category, title;
+    int items_nbr;
+
+    std::cout << "<> Buy Product" << std::endl;
+    std::cout << "Enter Product category : "<< std::endl << ">> "; 
+    std::cin >> category;
+    std::cout << "Enter Product Title : " << std::endl << ">> ";
+    std::cin >> title;
+    
+    while(prod_head) {
+        if(prod_head->cat == category && prod_head->title == title) {
+            if(prod_head->stock == 0) {
+                std::cout << "The stock is out for this product";
+                return;
+            }
+            do {            
+                std::cout << "How many item you want (MAX " << prod_head->stock << ") : ";
+                std::cin >> items_nbr;
+            } while(items_nbr > prod_head->stock || items_nbr <= 0);
+
+            if(card.balance <items_nbr*prod_head->price) {          // verify if balance is enough
+                std::cout << "You don't have enough money for"<< items_nbr <<" item(s)\n";
+                return;
+            }
+            card.balance -= items_nbr*prod_head->price;   // control balance - n*price
+            prod_head->stock -= items_nbr;                 //control the stock of product
+            std::cout << "Product purchased seccusfuly" << std::endl;
+            // store product in a file 
+            std::fstream file;
+            file.open("DB/purchased_prods.txt",std::ios::app);
+            if(file.is_open()) {
+                file << prod_head->id << "|" << prod_head->title << "|" << prod_head->cat << "|" << std::fixed << std::setprecision(2) << prod_head->price << "\n"; 
+            }
+            else {
+                std::cout << "Error while opening a file !!!" << std::endl;
+                file.close();
+                return;            
+            }
+            file.close();
+            return;
+        }
+        prod_head = prod_head->next;
+    }
+    std::cout << "This product does not exist\n";
+}
+
+void update_card_info(card_info card) {
+    std::fstream file;
+    file.open("DB/creditCard.txt",std::ios::out);
+    if(file.is_open()) {
+        file << card.first_name << "|" << card.last_name << "|" << card.RIB << "|" << card.expir_date << "|" << card.cvv << "|" << std::fixed << std::setprecision(2) <<  card.balance << "\n";
+    }
+    else {
+        std::cout << "Error while opening a file for writing !!!" << std::endl;
+    }
+    file.close();
+}
 
 
 int main() {
     char operation;
     product* products_head = NULL;
     user* users_head = NULL;
+    card_info card{}; // create a card and initialize it's values to default
     int is_logged = 0;
     bool is_admin = 0;
     std::string storeName = "Wakrimi Fashion";
     uploadElements(&users_head,"DB/loginReg.txt");
     uploadElements(&products_head,"DB/products.txt");
-    std::cout << std::endl << "Welcome to " + storeName + " store \n";
+    std::cout << std::endl << "Welcome to " + storeName + " store" << std::endl << std::endl;
     while(1) {
-        std::cout << std::endl << "Choose an operation : " << std::endl;
         if(is_logged) {        
-            std::cout << "\t<> View Products (V)" << std::endl;
-            std::cout << "\t<> Search Products (F)" << std::endl;
+            std::cout << "Products Management : " << std::endl;
+            print_option("Add Credit Card", "(C)");
+            print_option("View Products", "(V)");
+            print_option("Find Products", "(F)");
+            print_option("Buy Product", "(B)");
+
             if(is_admin) {
-                std::cout << "\t<> Add Product (A)" << std::endl;
-                std::cout << "\t<> Modify Product (M)" << std::endl;
-                std::cout << "\t<> Delete Product (D)" << std::endl;
-                std::cout << "\t<> View Accounts (W)" << std::endl;
-                std::cout << "\t<> Add Account (P)" << std::endl;
-                std::cout << "\t<> Edit Account (E)" << std::endl;
-                std::cout << "\t<> Search for Account (R)" << std::endl;
-                std::cout << "\t<> Delete Account (X)" << std::endl;
+                print_option("Add Product", "(A)");
+                print_option("Modify Product", "(M)");
+                print_option("Delete Product", "(D)");
+
+                std::cout << "Users Management : " << std::endl;
+                print_option("Add Account", "(P)");
+                print_option("View Accounts", "(W)");
+                print_option("Edit Account", "(E)");
+                print_option("Search for Account", "(Z)");
+                print_option("Remove Account", "(R)");
             }
-            std::cout << "\t<> Log Out (O)" << std::endl;
+            print_option("Log Out", "(O)");
         }
         else {
-            std::cout << "\t<> Sign Up (S)" << std::endl; 
-            std::cout << "\t<> Log In (L)" << std::endl; 
+            print_option("Sign Up", "(S)");
+            print_option("Log In", "(L)");
         }
-        std::cout << "\t<> Quit (Q)" << std::endl;
-        std::cout << ">> ";
+        print_option("Quit", "(Q)");
+        std::cout << std::endl << ">> ";
         while(!(std::cin >> operation)) {
             std::cin.clear();
             std::cin.ignore();
@@ -544,7 +684,7 @@ int main() {
                     if(is_logged && is_admin) delete_element(&products_head);
                     else std::cout << "Access denied" << std::endl; 
                     break;
-            case 'X' :
+            case 'R' :
                     if(is_logged && is_admin) delete_element(&users_head);
                     else std::cout << "Access denied" << std::endl; 
                     break;
@@ -559,7 +699,31 @@ int main() {
             case 'F' : 
                     if(is_logged) search_element(products_head);
                     break;
-            case 'R' : 
+            case 'C' : 
+                    if(is_logged) {
+                        int inc=0;
+                        do {
+                            if(inc) 
+                                std::cout << "Sorry, your card info are incorrect" << std::endl;
+                            card = insert_card_info();
+                            inc = 1;
+                        }
+                        while(!is_card_valid(card));
+                        std::cout << "<> Credit card is inserted successfuly\n";
+                    }
+                    break;
+            case 'B' :
+                    if(is_logged) {
+                        if(card.RIB.empty()) {
+                            std::cout << "You haven't added a credit card\n";
+                            break;
+                        }
+                        buy_product(products_head,card);
+                        update_card_info(card);
+                    }
+                    break;
+
+            case 'Z' : 
                     if(is_logged && is_admin) search_element(users_head);
                     break;
 
@@ -569,8 +733,6 @@ int main() {
                     save_changes(&users_head,"DB/loginReg.txt");
                     exit(0);
                     break;
-            default : 
-                    std::cout << "Please, ";
         }
     }
     return 0;

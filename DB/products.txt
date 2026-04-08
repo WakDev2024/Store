@@ -1,2 +1,2 @@
-0|X|X|X|1|1
-1|Y|Y|Y|2|2
+0|Smartphone|this smartphone is made in china|Electronics|1400|0
+1|Laptop|Laptops are very useful for studying |Electronics|2599|6

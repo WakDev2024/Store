@@ -1,8 +1,12 @@
 #include <iostream>
+#include <cstdlib>         // has system("cls")
 #include <string>
-#include <fstream> // for reading/writing files
-#include <type_traits> //for using templates
-#include <iomanip> // for input/output manipulation in terminal
+#include <fstream>        // for reading/writing files
+#include <type_traits>    // for using templates
+#include <iomanip>        // for input/output manipulation in terminal
+#include <conio.h>        // for getch()
+#include <thread>         // control threads (pause execution)
+#include <chrono>         // time control
 
 struct user {
     int id;
@@ -36,6 +40,20 @@ void print_option(const char* option, const char* option_symbol, const char* col
     std::cout << color ;
     std::cout << std::left << std::setw(25) << std::setfill('.')  << option << option_symbol << std::endl << "\033[0m" ;
 }
+
+void program_wait() {
+    std::cout << std::endl << "Go Back To Menu (Press Enter) : ";
+    _getch();   //enter any key (Enter key not required)
+    system("cls");
+}
+
+void print_temp_message(std::string message, std::string color = "\e[31m",int delay = 2) {
+    std::cout << color;
+    std::cout << message << std::endl;
+    std::cout << "\e[0m";
+    std::this_thread::sleep_for(std::chrono::seconds(delay));
+    system("cls"); 
+} 
 
 template <typename T>
 void generate_elem(T* elem, const char* elem_line) {
@@ -125,27 +143,32 @@ void uploadElements(T** head,std::string file_name) {
 
 int login(user* head) {
     std::string email, password;
-    std::cout << "<> Login" << std::endl;
+    std::cout << "\e[33m";  // text_color : yellow
+    std::cout << "<> Login" << std::endl << std::endl;
+    std::cout << "\e[34m";  // text_color : blue
     //email
     std::cout << "E-mail : " << std::endl;
+    std::cout << "\e[0m";  // text_color : white
     std::cout << ">> ";
     std::cin >> email;
     std::cin.ignore();
     //password
+    std::cout << "\e[34m";  // text_color : blue
     std::cout << "Password : " << std::endl;
+    std::cout << "\e[0m";  // text_color : white
     std::cout << ">> ";
     getline(std::cin,password);
 
     while(head) {
         if(email == head->email && password == head->password) {
-            std::cout << "Logged In Successfully " << std::endl;
+            print_temp_message("\n(~) Logged In Successfully","\e[32m");
             if(head->type == 'A') return 1;
             else return 2;
         }
-
+        
         head = head->next;
     }
-    std::cout << "Your credentials are not valid !!!" << std::endl;
+    print_temp_message("(!) Your credentials are not valid","\e[31m");
     return 0;
 }
 
@@ -154,25 +177,36 @@ void add_element(X** head, int is_admin = -1) {
     X *new_e = new X;
     int elem_id = 0;
     if constexpr (std::is_same_v <X,product>) {
-        std::cout << "<> Add Product " << std::endl;
+        std::cout << "\e[33m";
+        std::cout << "<> Add Product " << std::endl << std::endl;
         //title
+        std::cout << "\e[34m";
         std::cout << "Title : " << std::endl;
+        std::cout << "\e[0m";
         std::cout << ">> ";
         getline(std::cin,new_e->title);
         //description
+        std::cout << "\e[34m";
         std::cout << "Description : " << std::endl;
+        std::cout << "\e[0m";
         std::cout << ">> ";
         getline(std::cin, new_e->desc);
         //cat
+        std::cout << "\e[34m";
         std::cout << "Category : " << std::endl;
+        std::cout << "\e[0m";
         std::cout << ">> ";
         getline(std::cin,new_e->cat);
         //price
+        std::cout << "\e[34m";
         std::cout << "Price : " << std::endl;
+        std::cout << "\e[0m";
         std::cout << ">> ";
         std::cin >> new_e->price;
         //stock
+        std::cout << "\e[34m";
         std::cout << "Stock : " << std::endl;
+        std::cout << "\e[0m";
         std::cout << ">> ";
         std::cin >> new_e->stock;
         //next
@@ -180,23 +214,30 @@ void add_element(X** head, int is_admin = -1) {
         new_e->next = NULL;
     }
     else {
-        std::cout << "<> Sign Up" << std::endl;
+        std::cout << "\e[33m";
+        std::cout << "<> Sign Up" << std::endl << std::endl;
         //id
         new_e->id = elem_id;
         //type
         if(is_admin) new_e->type = 'A';
         else new_e->type = 'C';
         //username
+        std::cout << "\e[34m";
         std::cout << "Username : ";
+        std::cout << "\e[0m";
         getline(std::cin,new_e->username);
-
+        
         //email
+        std::cout << "\e[34m";
         std::cout << "E-mail : ";
+        std::cout << "\e[0m";
         std::cin >> new_e->email;
         std::cin.ignore();
-
+        
         //password
+        std::cout << "\e[34m";
         std::cout << "Password : ";
+        std::cout << "\e[0m";
         getline(std::cin,new_e->password);
         //next
         new_e->next = NULL;
@@ -222,18 +263,28 @@ void add_element(X** head, int is_admin = -1) {
 template <typename X>
 void modify_element(X** head) {
     if(!*head) {
-        if constexpr (std::is_same_v<X,product>)  
-            std::cout << "There is no product to modify" << std::endl;
-        else    
-            std::cout << "There is no user to modify" << std::endl;
+        if constexpr (std::is_same_v<X,product>) 
+            print_temp_message("(!) There is no product to modify");  
+        else
+            print_temp_message("(!) There is no user to modify");    
             return;
     }
     int id;
-    if constexpr (std::is_same_v<X,product>)
-        std::cout << "Enter the ID of Product : " << std::endl << ">> ";
-    else    
-        std::cout << "Enter the ID of user : " << std::endl << ">> ";
+    if constexpr (std::is_same_v<X,product>) {
+        std::cout << "\e[33m";
+        std::cout << "<> Modify Product " << std::endl;
+        std::cout << "\e[34m";
+        std::cout << "Enter the ID of Product : " << std::endl;
+    } 
+    else {
+        std::cout << "\e[33m";
+        std::cout << "<> Modify User " << std::endl;
+        std::cout << "\e[34m";
+        std::cout << "Enter the ID of user : " << std::endl;
+    }    
 
+    std::cout << "\e[0m";
+    std::cout << ">> ";
     std::cin >> id;
 
     X* temp = *head;
@@ -243,93 +294,161 @@ void modify_element(X** head) {
         if(temp->id == id) {
             if constexpr(std::is_same_v<X,product>) {
                 //Title
-                std::cout << "Do you want to modify the title ? (y,n)"<<std::endl << ">> ";
+                std::cout << "\e[35m";
+                std::cout << "Do you want to modify the title ? (y,n)"<<std::endl;
+                std::cout << "\e[0m";
+                std::cout << ">> ";
                 std::cin >> decision;
                 if(decision == 'y' || decision == 'Y') {
-                    std::cout << "Enter the new title : "<<std::endl << ">> ";
+                    std::cout << "\e[34m";
+                    std::cout << "Enter the new title : "<<std::endl;
+                    std::cout << "\e[0m";
+                    std::cout << ">> ";
                     std::cin >> temp->title;
                 } 
                 //Description
-                std::cout << "Do you want to modify the description ? (y,n)"<<std::endl << ">> ";
+                std::cout << "\e[35m";
+                std::cout << "Do you want to modify the description ? (y,n)"<<std::endl;
+                std::cout << "\e[0m";
+                std::cout << ">> ";
                 std::cin >> decision;
                 if(decision == 'y' || decision == 'Y') {
-                    std::cout << "Enter the new description : "<<std::endl << ">> ";
+                    std::cout << "\e[34m";
+                    std::cout << "Enter the new description : "<<std::endl;
+                    std::cout << "\e[0m";
+                    std::cout << ">> ";
                     std::cin >> temp->desc;
                 } 
                 //category
-                std::cout << "Do you want to modify the category ? (y,n)"<<std::endl << ">> ";
+                std::cout << "\e[35m";
+                std::cout << "Do you want to modify the category ? (y,n)"<<std::endl;
+                std::cout << "\e[0m";
+                std::cout << ">> ";
                 std::cin >> decision;
                 if(decision == 'y' || decision == 'Y') {
-                    std::cout << "Enter the new category : "<<std::endl << ">> ";
+                    std::cout << "\e[34m";
+                    std::cout << "Enter the new category : "<<std::endl;
+                    std::cout << "\e[0m";
+                    std::cout << ">> ";
                     std::cin >> temp->cat;
                 } 
                 //price
-                std::cout << "Do you want to modify the price ? (y,n)"<<std::endl << ">> ";
+                std::cout << "\e[35m";
+                std::cout << "Do you want to modify the price ? (y,n)"<<std::endl;
+                std::cout << "\e[0m";
+                std::cout << ">> ";
                 std::cin >> decision;
                 if(decision == 'y' || decision == 'Y') {
-                    std::cout << "Enter the new price : "<<std::endl << ">> ";
+                    std::cout << "\e[34m";
+                    std::cout << "Enter the new price : "<<std::endl;
+                    std::cout << "\e[0m";
+                    std::cout << ">> ";
                     std::cin >> temp->price;
                 } 
                 //stock
-                std::cout << "Do you want to modify the stock ? (y,n)"<<std::endl << ">> ";
+                std::cout << "\e[35m";
+                std::cout << "Do you want to modify the stock ? (y,n)"<<std::endl;
+                std::cout << "\e[0m";
+                std::cout << ">> ";
                 std::cin >> decision;
                 if(decision == 'y' || decision == 'Y') {
-                    std::cout << "Enter the new stock : "<<std::endl << ">> ";
+                    std::cout << "\e[34m";
+                    std::cout << "Enter the new stock : "<<std::endl;
+                    std::cout << "\e[0m";
+                    std::cout << ">> ";
                     std::cin >> temp->stock;
-                } 
+                }
+                print_temp_message("(~) Product Modified Successfully","\e[32m");
             }
             else {
                 //type
-                std::cout << "Do you want to modify the type ? (y,n)"<<std::endl << ">> ";
+                std::cout << "\e[35m";
+                std::cout << "Do you want to modify the type ? (y,n)"<<std::endl;
+                std::cout << "\e[0m";
+                std::cout << ">> ";
                 std::cin >> decision;
                 if(decision == 'y' || decision == 'Y') {
-                    std::cout << "Enter the new type : "<<std::endl << ">> ";
+                    std::cout << "\e[34m";
+                    std::cout << "Enter the new type : "<<std::endl;
+                    std::cout << "\e[0m";
+                    std::cout << ">> ";
                     std::cin >> temp->type;
                 } 
                 //username
-                std::cout << "Do you want to modify the username ? (y,n)"<<std::endl << ">> ";
+                std::cout << "\e[35m";
+                std::cout << "Do you want to modify the username ? (y,n)"<<std::endl;
+                std::cout << "\e[0m";
+                std::cout << ">> ";
                 std::cin >> decision;
                 if(decision == 'y' || decision == 'Y') {
-                    std::cout << "Enter the new username : "<<std::endl << ">> ";
+                    std::cout << "\e[34m";
+                    std::cout << "Enter the new username : "<<std::endl;
+                    std::cout << "\e[0m";
+                    std::cout << ">> ";
                     std::cin >> temp->username;
                 } 
                 //email
-                std::cout << "Do you want to modify the email ? (y,n)"<<std::endl << ">> ";
+                std::cout << "\e[35m";
+                std::cout << "Do you want to modify the email ? (y,n)"<<std::endl;
+                std::cout << "\e[0m";
+                std::cout << ">> ";
                 std::cin >> decision;
                 if(decision == 'y' || decision == 'Y') {
-                    std::cout << "Enter the new email : "<<std::endl << ">> ";
+                    std::cout << "\e[34m";
+                    std::cout << "Enter the new email : "<<std::endl;
+                    std::cout << "\e[0m";
+                    std::cout << ">> ";
                     std::cin >> temp->email;
                 } 
                 //password
-                std::cout << "Do you want to modify the password ? (y,n)"<<std::endl << ">> ";
+                std::cout << "\e[35m";
+                std::cout << "Do you want to modify the password ? (y,n)"<<std::endl;
+                std::cout << "\e[0m";
+                std::cout << ">> ";
                 std::cin >> decision;
                 if(decision == 'y' || decision == 'Y') {
-                    std::cout << "Enter the new password : "<<std::endl << ">> ";
+                    std::cout << "\e[34m";
+                    std::cout << "Enter the new password : "<<std::endl;
+                    std::cout << "\e[0m";
+                    std::cout << ">> ";
                     std::cin >> temp->password;
                 } 
+                print_temp_message("(~) User Modified Successfully","\e[32m");
+
             }
+            return;
                        
         }
         temp = temp->next;
     }
-    std::cout << "ID is invalid";
+    print_temp_message("(!) ID is invalid");
 
 }
 
 template <typename Z>
 void delete_element(Z**head) {
     int id;
-    if constexpr (std::is_same_v<Z,product>) 
-        std::cout << "Enter the id of product : " << std::endl << ">> ";
-    else
-        std::cout << "Enter the id of user : " << std::endl << ">> ";
     
+    if constexpr (std::is_same_v<Z,product>) {
+        std::cout << "\e[33m";
+        std::cout << "<> Delete Product " << std::endl;
+        std::cout << "\e[34m";
+        std::cout << "Enter the id of product : " << std::endl;
+    } 
+    else {
+        std::cout << "\e[33m";
+        std::cout << "<> Delete User " << std::endl;
+        std::cout << "\e[34m";
+        std::cout << "Enter the id of user : " << std::endl;
+    }
+    std::cout << "\e[0m";
+    std::cout << ">> ";
     std::cin >> id;
     if(!*head) {
         if constexpr (std::is_same_v<Z,product>) 
-            std::cout << "Can't delete product, store is empty " << std::endl;
+            print_temp_message("(!) Can't delete product, store is empty");
         else    
-            std::cout << "There is no users to delete " << std::endl;
+            print_temp_message("(!) There is no users to delete");
         return;
     }
     
@@ -339,9 +458,9 @@ void delete_element(Z**head) {
         *head = (*head)->next;
         delete temp;
         if constexpr (std::is_same_v<Z,product>) 
-            std::cout << "Product deleted successfuly"<< std::endl;
+            print_temp_message("(~) Product deleted successfuly","\e[32m");
         else
-            std::cout << "User deleted successfuly"<< std::endl;
+            print_temp_message("(~) User deleted successfuly","\e[32m");
         return;
     }
 
@@ -353,15 +472,16 @@ void delete_element(Z**head) {
     if(temp->next && (temp->next->id == id)) {
         temp->next = temp->next->next;
         if constexpr (std::is_same_v<Z,product>)
-            std::cout << "Product deleted successfuly"<< std::endl;
+            print_temp_message("(~) Product deleted successfuly","\e[32m");
         else 
-            std::cout << "User deleted successfuly"<< std::endl;
+            print_temp_message("(~) User deleted successfuly","\e[32m");
     }
     else {
+        
         if constexpr (std::is_same_v<Z,product>)
-            std::cout << "Can't delete product, id is invalid " << std::endl;
+            print_temp_message("(!) Can't delete product, id is invalid");
         else 
-            std::cout << "Can't delete user, id is invalid" << std::endl;
+            print_temp_message("(!) Can't delete user, id is invalid");
     }
 }
 
@@ -370,28 +490,65 @@ void view_elements(X *head, bool is_admin = 0) {
     int elem_count = 0;
     if(!head) {
         if constexpr (std::is_same_v<X,product>) 
-            std::cout << "Store doesn't have any product"<< std::endl;
-        else 
-            std::cout << "There is no accounts to display"<< std::endl;
+            print_temp_message("(!) Store doesn't have any product","\e[31m");
+            else 
+            print_temp_message("(!) There is no accounts to display","\e[31m");
             return;
     }
     while(head) {
         if constexpr (std::is_same_v<X,product>) {
+            std::cout << "\e[33m";
             std::cout << std::endl << "<> Product " << ++elem_count << std::endl;
-            if(is_admin) std::cout << "\tID : " << head->id << std::endl;
-            std::cout << "\tTitle : " << head->title << std::endl;
-            std::cout << "\tDescription : " << head->desc << std::endl;
-            std::cout << "\tCategory : " << head->cat << std::endl;
-            std::cout << "\tPrice : " << head->price << std::endl;
-            std::cout << "\tStock : " << head->stock << std::endl;
+            if(is_admin)  {
+                std::cout << "\e[34m";
+                std::cout << "\tID : ";
+                std::cout << "\e[0m";
+                std::cout << head->id << std::endl;
+            }
+            std::cout << "\e[34m";
+            std::cout << "\tTitle : ";
+            std::cout << "\e[0m";
+            std::cout << head->title << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tDescription : ";
+            std::cout << "\e[0m";
+            std::cout << head->desc << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tCategory : ";
+            std::cout << "\e[0m";
+            std::cout << head->cat << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tPrice : ";
+            std::cout << "\e[0m";
+            std::cout << head->price << " DH" << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tStock : ";
+            std::cout << "\e[0m";
+            std::cout << head->stock << std::endl;
         }
         else {
+            std::cout << "\e[33m";
             std::cout << std::endl << "<> Account " << ++elem_count << std::endl;
-            std::cout << "\tID : " << head->id << std::endl;
-            std::cout << "\tType : " << head->type << std::endl;
-            std::cout << "\tusername : " << head->username << std::endl;
-            std::cout << "\temail : " << head->email << std::endl;
-            std::cout << "\tpassword : " << head->password << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tID : ";
+            std::cout << "\e[0m";
+            std::cout << head->id << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tType : ";
+            std::cout << "\e[0m";
+            std::cout << head->type << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tusername : ";
+            std::cout << "\e[0m";
+            std::cout << head->username << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\temail : ";
+            std::cout << "\e[0m";
+            std::cout << head->email << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tpassword : ";
+            std::cout << "\e[0m";
+            std::cout << head->password << std::endl;
             
         }
         head = head->next;
@@ -401,21 +558,58 @@ template <typename X>
 void view_element(X *head, bool is_admin = 0) {
     
         if constexpr (std::is_same_v<X,product>) {
+            std::cout << "\e[33m";
             std::cout << std::endl << "<> Product " << std::endl;
-            if(is_admin) std::cout << "\tID : " << head->id << std::endl;
-            std::cout << "\tTitle : " << head->title << std::endl;
-            std::cout << "\tDescription : " << head->desc << std::endl;
-            std::cout << "\tCategory : " << head->cat << std::endl;
-            std::cout << "\tPrice : " << head->price << std::endl;
-            std::cout << "\tStock : " << head->stock << std::endl;
+            if(is_admin) {
+                std::cout << "\e[34m";
+                std::cout << "\tID : ";
+                std::cout << "\e[0m";
+                std::cout << head->id << std::endl;
+            }
+            std::cout << "\e[34m";
+            std::cout << "\tTitle : ";
+            std::cout << "\e[0m";
+            std::cout << head->title << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tDescription : ";
+            std::cout << "\e[0m";
+            std::cout << head->desc << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tCategory : ";
+            std::cout << "\e[0m";
+            std::cout << head->cat << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tPrice : ";
+            std::cout << "\e[0m";
+            std::cout << head->price << " DH" << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tStock : ";
+            std::cout << "\e[0m";
+            std::cout << head->stock << std::endl;
         }
         else {
+            std::cout << "\e[33m";
             std::cout << std::endl << "<> Account " << std::endl;
-            std::cout << "\tID : " << head->id << std::endl;
-            std::cout << "\tType : " << head->type << std::endl;
-            std::cout << "\tusername : " << head->username << std::endl;
-            std::cout << "\temail : " << head->email << std::endl;
-            std::cout << "\tpassword : " << head->password << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tID : ";
+            std::cout << "\e[0m";
+            std::cout << head->id << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tType : ";
+            std::cout << "\e[0m";
+            std::cout << head->type << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tusername : ";
+            std::cout << "\e[0m";
+            std::cout << head->username << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\temail : ";
+            std::cout << "\e[0m";
+            std::cout << head->email << std::endl;
+            std::cout << "\e[34m";
+            std::cout << "\tpassword : ";
+            std::cout << "\e[0m";
+            std::cout << head->password << std::endl;
             
         }  
 }
@@ -424,12 +618,16 @@ template <typename X>
 void search_element(X* head) {
     int elems_found = 0;
     std::string search_kW;
+    std::cout << "\e[33m";
+    std::cout << "<> Find Products" << std::endl << std::endl;
+    std::cout << "\e[34m";
     if constexpr (std::is_same_v <X,product>)
-        std::cout << "Enter a keyword of product ( title, description, category ) : " << std::endl << ">> "; 
+        std::cout << "Enter a keyword of product ( title, description, category ) : " << std::endl << "\e[0m" << ">> "; 
     else 
-        std::cout << "Enter a keyword of user ( username, email ) : " << std::endl << ">> "; 
+        std::cout << "Enter a keyword of user ( username, email ) : " << std::endl << "\e[0m" << ">> "; 
 
     std::cin >> search_kW;
+    system("cls");
 
     while(head) {
         if constexpr (std::is_same_v <X,product> ) {
@@ -446,10 +644,16 @@ void search_element(X* head) {
         }
         head = head->next;   
     }
-    if(elems_found <=1 ) 
-        std::cout << elems_found << " element found." << std::endl;
+    if(elems_found <=1 ) {
+        std::cout << "\e[32m";
+        std::cout << std::endl << elems_found << " element found." << std::endl;
+    }
     else
-        std::cout << elems_found << " elements found." << std::endl;
+    std::cout << std::endl << elems_found << " elements found." << std::endl;
+    
+    std::cout << "\e[0m";
+
+    program_wait();
 
 }
 
@@ -483,12 +687,22 @@ void save_changes(Y** elem_head,std::string file_name) {
 
 card_info insert_card_info() {
     card_info card;
-    std::cout << "<> Card Info "<< std::endl;
-    std::cout << "Enter First Name : " << std::endl << ">> ";
+    std::cout << "\033[93m"; // text_color: yellow
+    std::cout << "<> Card Info "<< std::endl <<std::endl;
+    std::cout << "\033[34m"; // text_color: blue
+    std::cout << "Enter First Name : " << std::endl;
+    std::cout << "\033[0m"; // text_color: white
+    std::cout << ">> ";
     std::cin >> card.first_name;
-    std::cout << "Enter Last Name : " << std::endl << ">> ";
+    std::cout << "\033[34m"; // text_color: blue
+    std::cout << "Enter Last Name : " << std::endl;
+    std::cout << "\033[0m"; // text_color: white
+    std::cout << ">> ";
     std::cin >> card.last_name;
-    std::cout << "Enter RIB : " << std::endl << ">> ";
+    std::cout << "\033[34m"; // text_color: blue
+    std::cout << "Enter RIB : " << std::endl;
+    std::cout << "\033[0m"; // text_color: white
+    std::cout << ">> ";
     std::cin >> card.RIB;
     return card;
 }
@@ -545,39 +759,47 @@ bool is_card_valid(card_info& user_card) { // the card that is provided by user
 void buy_product(product* prod_head, card_info& card) {
     std::string category, title;
     int items_nbr;
-
+    std::cout << "\e[33m";
     std::cout << "<> Buy Product" << std::endl;
-    std::cout << "Enter Product category : "<< std::endl << ">> "; 
+    std::cout << "\e[34m";
+    std::cout << "Enter Product category : "<< std::endl;
+    std::cout << "\e[0m";
+    std::cout << ">> "; 
     std::cin >> category;
-    std::cout << "Enter Product Title : " << std::endl << ">> ";
+    std::cout << "\e[34m";
+    std::cout << "Enter Product Title : " << std::endl;
+    std::cout << "\e[0m";
+    std::cout << ">> ";
     std::cin >> title;
     
     while(prod_head) {
         if(prod_head->cat == category && prod_head->title == title) {
             if(prod_head->stock == 0) {
-                std::cout << "The stock is out for this product";
+                print_temp_message("(!) The stock is out for this product","\e[31m");
                 return;
             }
-            do {            
+            do { 
+                std::cout << "\e[35m";           
                 std::cout << "How many item you want (MAX " << prod_head->stock << ") : ";
+                std::cout << "\e[0m";           
                 std::cin >> items_nbr;
             } while(items_nbr > prod_head->stock || items_nbr <= 0);
 
-            if(card.balance <items_nbr*prod_head->price) {          // verify if balance is enough
-                std::cout << "You don't have enough money for"<< items_nbr <<" item(s)\n";
+            if(card.balance < items_nbr*prod_head->price) {          // verify if balance is enough
+                print_temp_message("(!) You don't have enough money for "+ std::to_string(items_nbr)+" item(s)","\e[31m");
                 return;
             }
             card.balance -= items_nbr*prod_head->price;   // control balance - n*price
             prod_head->stock -= items_nbr;                 //control the stock of product
-            std::cout << "Product purchased seccusfuly" << std::endl;
+            print_temp_message("(~) Product purchased seccusfuly","\e[32m");
             // store product in a file 
             std::fstream file;
-            file.open("DB/purchased_prods.txt",std::ios::app);
+            file.open("DB/purchasedProds.txt",std::ios::app);
             if(file.is_open()) {
                 file << prod_head->id << "|" << prod_head->title << "|" << prod_head->cat << "|" << std::fixed << std::setprecision(2) << prod_head->price << "\n"; 
             }
             else {
-                std::cout << "Error while opening a file !!!" << std::endl;
+                print_temp_message("(!) Error while opening a file","\e[31m");
                 file.close();
                 return;            
             }
@@ -586,7 +808,7 @@ void buy_product(product* prod_head, card_info& card) {
         }
         prod_head = prod_head->next;
     }
-    std::cout << "This product does not exist\n";
+    print_temp_message("(!) This product does not exist", "\e[31m");
 }
 
 void update_card_info(card_info card) {
@@ -612,21 +834,27 @@ int main() {
     std::string storeName = "Wakrimi Fashion";
     uploadElements(&users_head,"DB/loginReg.txt");
     uploadElements(&products_head,"DB/products.txt");
-    std::cout << std::endl << "Welcome to " + storeName + " store" << std::endl << std::endl;
     while(1) {
+        system("cls");
+        // std::cout << "\033[2J\033[1;1H";  //alternative of system("cls"); but it does not really clear terminal 
+        
+        std::cout << "\033[1m"; // text_weight : bold
+        std::cout << "\033[31m"; // text_color : red 
+        std::cout << "Welcome to " + storeName + " store" << std::endl << std::endl;
+        std::cout << "\033[0m"; // text_color : default(white)
         if(is_logged) {        
-            std::cout << "Products Management : " << std::endl;
+            std::cout << "\033[33m" << "Products Management : " << "\033[0m" <<std::endl;
             print_option("Add Credit Card", "(C)");
             print_option("View Products", "(V)");
             print_option("Find Products", "(F)");
             print_option("Buy Product", "(B)");
-
+            
             if(is_admin) {
                 print_option("Add Product", "(A)");
                 print_option("Modify Product", "(M)");
                 print_option("Delete Product", "(D)");
-
-                std::cout << "Users Management : " << std::endl;
+                
+                std::cout << "\033[33m" << "Users Management : " << "\033[0m" <<std::endl;
                 print_option("Add Account", "(P)");
                 print_option("View Accounts", "(W)");
                 print_option("Edit Account", "(E)");
@@ -647,75 +875,85 @@ int main() {
             std::cout << ">> "; 
         }
         std::cin.ignore();
+        system("cls");
         switch (operation) {
-            case 'O' :
-                    if(is_logged) is_logged = 0;
-                    else std::cout << "Access denied" << std::endl; 
+            case 'O' :  //log out
+                    if(is_logged) {
+                        is_logged = 0;
+                        print_temp_message("<> Log Out...","\e[33m",1);
+                    }      
+                    else print_temp_message("(!) Access denied","\e[31m");
                     break;
-            case 'S' : 
+            case 'S' :  //sign up 
                     if(!is_logged) add_element(&users_head,is_admin);
-                    else std::cout << "Access denied" << std::endl; 
+                    else print_temp_message("(!) Access denied","\e[31m");
                     break;
-            case 'L' : 
+            case 'L' :  //log in
                     if(!is_logged) {
                         is_logged = login(users_head);
                         if(is_logged == 1) is_admin = 1;
                         else is_admin = 0;
                     }
-                    else std::cout << "Access denied" << std::endl; 
+                    else print_temp_message("(!) Access denied","\e[31m");
                     break;
-            case 'A' :
+            case 'A' :  //add product
                     if(is_logged && is_admin) add_element(&products_head);
-                    else std::cout << "Access denied" << std::endl; 
+                    else print_temp_message("(!) Access denied","\e[31m");
                     break;
-            case 'P' :
+            case 'P' :  //add user
                     if(is_logged && is_admin) add_element(&users_head);
-                    else std::cout << "Access denied" << std::endl; 
+                    else print_temp_message("(!) Access denied","\e[31m");
                     break;
-            case 'M' : 
+            case 'M' :  //modify product
                     if(is_logged && is_admin) modify_element(&products_head);
-                    else std::cout << "Access denied" << std::endl;
+                    else print_temp_message("(!) Access denied","\e[31m");
                     break;
-            case 'E' : 
+            case 'E' :  //edit user
                     if(is_logged && is_admin) modify_element(&users_head);
-                    else std::cout << "Access denied" << std::endl;
+                    else print_temp_message("(!) Access denied","\e[31m");
                     break;
-            case 'D' :
+            case 'D' :  //delete product
                     if(is_logged && is_admin) delete_element(&products_head);
-                    else std::cout << "Access denied" << std::endl; 
+                    else print_temp_message("(!) Access denied","\e[31m");
                     break;
-            case 'R' :
+            case 'R' :  //remove user
                     if(is_logged && is_admin) delete_element(&users_head);
-                    else std::cout << "Access denied" << std::endl; 
+                    else print_temp_message("(!) Access denied","\e[31m");
                     break;
-            case 'V' : 
+            case 'V' :  //view products
                     if(is_logged) view_elements(products_head,is_admin);
-                    else std::cout << "Access denied" << std::endl; 
+                    else print_temp_message("(!) Access denied","\e[31m");
+                    program_wait();
                     break;
-            case 'W' : 
-                    if(is_logged && is_admin) view_elements(users_head);
-                    else std::cout << "Access denied" << std::endl; 
+            case 'W' :  //view users
+                    if(is_logged && is_admin) {
+                        view_elements(users_head);
+                        program_wait();
+                    }
+                    else print_temp_message("(!) Access denied","\e[31m");
                     break;
-            case 'F' : 
+            case 'F' :  //find products
                     if(is_logged) search_element(products_head);
                     break;
-            case 'C' : 
+            case 'C' :  //add card
                     if(is_logged) {
                         int inc=0;
                         do {
-                            if(inc) 
-                                std::cout << "Sorry, your card info are incorrect" << std::endl;
+                            system("cls");
+                            if(inc) {
+                                print_temp_message("(!) Sorry, your card info are incorrect","\033[31m");
+                            }
                             card = insert_card_info();
                             inc = 1;
                         }
                         while(!is_card_valid(card));
-                        std::cout << "<> Credit card is inserted successfuly\n";
+                        print_temp_message("(~) Credit card is inserted successfuly","\033[32m");
                     }
                     break;
-            case 'B' :
+            case 'B' :  //buy product
                     if(is_logged) {
                         if(card.RIB.empty()) {
-                            std::cout << "You haven't added a credit card\n";
+                            print_temp_message("(!) You haven't added a credit card","\e[31m");
                             break;
                         }
                         buy_product(products_head,card);
@@ -723,14 +961,14 @@ int main() {
                     }
                     break;
 
-            case 'Z' : 
+            case 'Z' :  //search user
                     if(is_logged && is_admin) search_element(users_head);
                     break;
 
-            case 'Q' : 
-                    std::cout << std::endl << "<> Quit" << std::endl << std::endl;
+            case 'Q' :  //quit
                     save_changes(&products_head,"DB/products.txt");
                     save_changes(&users_head,"DB/loginReg.txt");
+                    print_temp_message("<> Quit...","\e[33m",1);
                     exit(0);
                     break;
         }

@@ -1,0 +1,6 @@
+CP_name |funct|  N  | lunch_date | expir_date 
+ SAVE20 |  0  |  20 | 11/02/2025 | 11/02/2027
+
+functionalities: 
+    0 : save n %
+    1 : - n DH

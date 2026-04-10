@@ -1,1 +1,2 @@
 0|Smartphone|Electronics|1400.00
+1|Laptop|Electronics|2599.00

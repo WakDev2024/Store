@@ -1,0 +1,2 @@
+total_selled_products|this_month_selled_prods|this_week_selled_broducts|revenue|
+total_users_nbr|total_admins_nbr|_
